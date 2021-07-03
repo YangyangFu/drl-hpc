@@ -216,6 +216,10 @@ def offpolicy_trainer_1(
         if save_fn:
             save_fn(policy)
 
+        # save results for each epoch
+        save_history=True
+        if save_history:
+            watch(epoch)
         
 
     return 1
@@ -313,7 +317,7 @@ def test_dqn(args=get_args()):
 
     
     # watch agent's performance
-    def watch():
+    def watch(epoch):
         print("Setup test envs ...")
         policy.eval()
         policy.set_eps(args.eps_test)
