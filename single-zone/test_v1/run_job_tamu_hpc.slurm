@@ -16,6 +16,15 @@
 
 ml purge
 # ADD udocker to path before loading
-# export PATH=/scratch/yangyangfu/:$PATH
-ml udocker
-bash test_dqn_tianshou_udocker.sh
+export UDOCKER_DIR=$SCRATCH/udocker
+export PATH=$UDOCKER_DIR:$PATH
+#ml udocker
+# define a container name
+export CONTAINER_ID=dqn_tianshou_v1
+# create a container
+udocker create --name=$CONTAINER_ID yangyangfu/mpcdrl:gpu_py3
+# prepare udocker to access gpu
+udocker setup --nvidia $CONTAINER_ID
+# run experiment
+udocker run --user=root -v `pwd`:/mnt/shared $CONTAINER_ID /bin/bash -c "cd /mnt/shared && python /mnt/shared/test_dqn_tianshou.py"
+#bash test_dqn_tianshou_udocker.sh
