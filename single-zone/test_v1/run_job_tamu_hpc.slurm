@@ -24,7 +24,9 @@ export CONTAINER_ID=dqn_tianshou_v1
 # create a container
 udocker create --name=$CONTAINER_ID yangyangfu/mpcdrl:gpu_py3
 # prepare udocker to access gpu
-udocker setup --nvidia $CONTAINER_ID
+udocker setup --force --nvidia $CONTAINER_ID
 # run experiment
 udocker run --user=root -e DISPLAY=${DISPLAY} -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v `pwd`:/mnt/shared $CONTAINER_ID /bin/bash -c "cd /mnt/shared && python /mnt/shared/test_dqn_tianshou.py"
+# remove container after experiment
+udocker rm $CONTAINER_ID
 #bash test_dqn_tianshou_udocker.sh
