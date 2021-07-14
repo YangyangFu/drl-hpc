@@ -14,6 +14,7 @@ import torch.nn as nn
 import gym_singlezone_jmodelica
 import gym
 
+
 def get_args(folder="experiment_results"):
     time_step = 15*60.0
     num_of_days = 7#31
@@ -47,7 +48,7 @@ def get_args(folder="experiment_results"):
 
     parser.add_argument('--logdir', type=str, default='log')
     
-    parser.add_argument('--device', type=str, default='gpu')
+    parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--frames-stack', type=int, default=1)
     parser.add_argument('--resume-path', type=str, default=None)
     parser.add_argument('--watch', default=False, action='store_true',
@@ -135,10 +136,7 @@ from tianshou.data import Collector
 from tianshou.policy import BasePolicy
 from tianshou.trainer import test_episode, gather_info
 from tianshou.utils import tqdm_config, MovAvg, BaseLogger, LazyLogger
-# why we cannot just use the default offpolicy trainer as defined by tianshou
 def offpolicy_trainer_1(
-    args: Dict,
-    test_envs: SubprocVectorEnv,
     policy: BasePolicy,
     train_collector: Collector,
     test_collector: Collector,
@@ -173,9 +171,7 @@ def offpolicy_trainer_1(
     test_collector.reset_stat()
     test_in_train = test_in_train and train_collector.policy == policy
 
-    acts=[]
-    obss=[]
-    rews=[]
+
     for epoch in range(1 + start_epoch, 1 + max_epoch):
         # train
         policy.train()
@@ -204,7 +200,6 @@ def offpolicy_trainer_1(
                     "n/st": str(int(result["n/st"])),
                 }
 
-
                 for i in range(round(update_per_step * result["n/st"])):
                     gradient_step += 1
                     losses = policy.update(batch_size, train_collector.buffer)
@@ -219,35 +214,9 @@ def offpolicy_trainer_1(
         
         
         if save_fn:
-            save_fn(policy) 
+            save_fn(policy)
 
-        # watch for each episode to save data
-        print("Setup test envs ...")
-        policy.eval()
-        policy.set_eps(args.eps_test)
-        test_envs.seed(args.seed)
-
-        print("Testing agent ...")
-        buffer = VectorReplayBuffer(
-                args.step_per_epoch+1, buffer_num=len(test_envs),
-                ignore_obs_next=True, save_only_last_obs=False,
-                stack_num=args.frames_stack)
-        collector = Collector(policy, test_envs, buffer, exploration_noise=False)
-        result = collector.collect(n_step=args.step_per_epoch)
-        #buffer.save_hdf5(args.save_buffer_name)
-        act=buffer._meta.__dict__['act']
-        obs=buffer._meta.__dict__['obs']
-        rew=buffer._meta.__dict__['rew']
-        acts.append(act)
-        obss.append(obs)
-        rews.append(rew)
-        #print(buffer._meta.__dict__.keys())
-        rew = result["rews"].mean()
-        print(f'Mean reward (over {result["n/ep"]} episodes): {rew}')
-
-    np.save(args.save_buffer_name+'/his_act.npy', np.array(acts))
-    np.save(args.save_buffer_name+'/his_obs.npy', np.array(obss))
-    np.save(args.save_buffer_name+'/his_rew.npy', np.array(rews))
+        
 
     return 1
 
@@ -256,6 +225,8 @@ def test_dqn(args=get_args()):
     tim_ctl = 0.0
     tim_learn = 0.0
     
+
+    
     env = make_building_env(args)
 
     args.state_shape = env.observation_space.shape or env.observation_space.n
@@ -263,6 +234,7 @@ def test_dqn(args=get_args()):
     
     print("Observations shape:", args.state_shape)
     print("Actions shape:", args.action_shape)
+
 
     # make environments
     train_envs = SubprocVectorEnv([lambda: make_building_env(args)
@@ -275,6 +247,7 @@ def test_dqn(args=get_args()):
     train_envs.seed(args.seed)
     test_envs.seed(args.seed)
 
+
     # define model
     print(args.state_shape)
     net = Net(args.state_shape, args.action_shape, args.device).to(args.device)
@@ -284,11 +257,19 @@ def test_dqn(args=get_args()):
     policy = DQNPolicy(net, optim, args.gamma, args.n_step,
                        target_update_freq=args.target_update_freq, reward_normalization = False, is_double=True)
     # load a previous policy
+    #if args.resume_path:
+    #    policy.load_state_dict(torch.load(args.resume_path, map_location=args.device))
+    #    print("Loaded agent from: ", args.resume_path)
+    # replay buffer: `save_last_obs` and `stack_num` can be removed together
+    # when you have enough RAM
     buffer = VectorReplayBuffer(
         args.buffer_size, buffer_num=len(train_envs), ignore_obs_next=True)
 
     # collector
     train_collector = Collector(policy, train_envs, buffer, exploration_noise=False)
+
+
+
 
     buffer_test = VectorReplayBuffer(
         args.step_per_epoch+100, buffer_num=len(test_envs), ignore_obs_next=True)
@@ -304,9 +285,18 @@ def test_dqn(args=get_args()):
     def save_fn(policy):
         torch.save(policy.state_dict(), os.path.join(log_path, 'policy.pth'))
 
+    '''
+    def stop_fn(mean_rewards):
+        if env.spec.reward_threshold:
+            return mean_rewards >= env.spec.reward_threshold
+        else:
+            return False
+    '''
+
     def train_fn(epoch, env_step):
         # nature DQN setting, linear decay in the first 1M steps
         max_eps_steps = args.epoch * args.step_per_epoch * 0.9
+
         total_epoch_pass = epoch*args.step_per_epoch + env_step
 
         #print("observe eps:  max_eps_steps, total_epoch_pass ", max_eps_steps, total_epoch_pass)
@@ -315,11 +305,13 @@ def test_dqn(args=get_args()):
         else:
             eps = args.eps_train_final
         policy.set_eps(eps)
+        print('train/eps', env_step, eps)
         logger.write('train/eps', env_step, eps)
 
     def test_fn(epoch, env_step):
         policy.set_eps(args.eps_test)
 
+    
     # watch agent's performance
     def watch():
         print("Setup test envs ...")
@@ -335,6 +327,7 @@ def test_dqn(args=get_args()):
         collector = Collector(policy, test_envs, buffer, exploration_noise=False)
         result = collector.collect(n_step=args.step_per_epoch)
         #buffer.save_hdf5(args.save_buffer_name)
+        
         np.save(args.save_buffer_name+'/his_act.npy', buffer._meta.__dict__['act'])
         np.save(args.save_buffer_name+'/his_obs.npy', buffer._meta.__dict__['obs'])
         np.save(args.save_buffer_name+'/his_rew.npy', buffer._meta.__dict__['rew'])
@@ -347,38 +340,52 @@ def test_dqn(args=get_args()):
         # test train_collector and start filling replay buffer
         train_collector.collect(n_step=args.batch_size * args.training_num)
         # trainer
-        """
-        result = offpolicy_trainer(
+        
+        result = offpolicy_trainer_1(
             policy = policy, train_collector = train_collector, test_collector = test_collector, max_epoch = args.epoch,
             step_per_epoch = args.step_per_epoch, step_per_collect = args.step_per_collect, episode_per_test = args.test_num,
             batch_size = args.batch_size, train_fn=train_fn, test_fn=test_fn,
             #stop_fn=stop_fn, 
             save_fn=save_fn, logger=logger,
             update_per_step=args.update_per_step, test_in_train=False)
-        
-        print(result.keys)
-        print("======================\n")
-        train_step=result["train_step"]
-        print(train_step)
-        train_episode=result["train_episode"]
-        print(train_episode)
-        """
+        '''
 
-        result = offpolicy_trainer_1(args = args, test_envs=test_envs,
-            policy = policy, train_collector = train_collector, test_collector = test_collector, max_epoch = args.epoch,
-            step_per_epoch = args.step_per_epoch, step_per_collect = args.step_per_collect, episode_per_test = args.test_num,
-            batch_size = args.batch_size, train_fn=train_fn, test_fn=test_fn,
+        result = offpolicy_trainer_1(
+            policy = policy, train_collector = train_collector, test_collector = test_collector, max_epoch = 1,
+            step_per_epoch = 100, step_per_collect = 1, episode_per_test = 1,
+            batch_size = 64, train_fn=train_fn, test_fn=test_fn,
             #stop_fn=stop_fn, 
             save_fn=save_fn, logger=logger,
             update_per_step=args.update_per_step, test_in_train=False)
-        
+        '''
         #pprint.pprint(result)
-        #watch()
+
+        watch()
+    
+
     
     if args.test_only:
         policy.load_state_dict(torch.load(args.resume_path, map_location=args.device))
         print("Loaded agent from: ", os.path.join(log_path, 'policy.pth'))
         watch()
+
+    '''
+    for k in range(args.epoch):
+        
+        for i in range(int(args.step_per_epoch)):  # total step
+            max_eps_steps = args.step_per_epoch * 0.9
+            if env_step <= max_eps_steps:
+                eps = args.eps_train - env_step * (args.eps_train - args.eps_train_final) / max_eps_steps
+            else:
+                eps = args.eps_train_final
+            policy.set_eps(eps)
+
+            collect_result = train_collector.collect(n_step=10)
+
+            losses = policy.update(64, train_collector.buffer)
+        
+        train_collector.reset_env()
+    '''
 
 if __name__ == '__main__':
     folder='./dqn_results'
