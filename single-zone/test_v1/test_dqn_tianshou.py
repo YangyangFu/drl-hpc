@@ -381,6 +381,9 @@ def test_dqn(args=get_args()):
         watch()
 
 if __name__ == '__main__':
+    
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
     folder='./dqn_results'
     if not os.path.exists(folder):
         os.mkdir(folder)

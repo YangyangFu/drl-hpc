@@ -15,6 +15,7 @@
 ##SBATCH --mail-user=yangyang.fu@tamu.edu    #Send all emails to email_address 
 
 ml purge
+module load CUDA
 # ADD udocker to path before loading
 echo "Define udocker path!!!!"
 export UDOCKER_DIR=$SCRATCH/udocker
