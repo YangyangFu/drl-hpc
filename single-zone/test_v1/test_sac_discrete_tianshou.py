@@ -338,9 +338,9 @@ def test_sac_discrete(args):
         result = collector.collect(n_step=args.step_per_epoch)
         #buffer.save_hdf5(args.save_buffer_name)
         
-        np.save(args.save_buffer_name+'/his_act.npy', buffer._meta.__dict__['act'])
-        np.save(args.save_buffer_name+'/his_obs.npy', buffer._meta.__dict__['obs'])
-        np.save(args.save_buffer_name+'/his_rew.npy', buffer._meta.__dict__['rew'])
+        np.save(args.save_buffer_name+'/his_act_final.npy', buffer._meta.__dict__['act'])
+        np.save(args.save_buffer_name+'/his_obs_final.npy', buffer._meta.__dict__['obs'])
+        np.save(args.save_buffer_name+'/his_rew_final.npy', buffer._meta.__dict__['rew'])
         #print(buffer._meta.__dict__.keys())
         rew = result["rews"].mean()
         print(f'Mean reward (over {result["n/ep"]} episodes): {rew}')
@@ -368,7 +368,7 @@ def test_sac_discrete(args):
             update_per_step=args.update_per_step, test_in_train=False)
         '''
         #pprint.pprint(result)
-        #watch()
+        watch()
     
     if args.test_only:
         policy.load_state_dict(torch.load(args.resume_path, map_location=args.device))
