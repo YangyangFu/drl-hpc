@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1                   #Request 1 task
 #SBATCH --mem=40G                  #Request 10GB per node
 #SBATCH --output=log_dqn.%j      #Send stdout/err to "Example5Out.[jobID]"
-#SBATCH --gres=gpu:2                 #Request 2 GPU per node can be 1 or 2
+#SBATCH --gres=gpu:1                 #Request 2 GPU per node can be 1 or 2
 #SBATCH --partition=gpu              #Request the GPU partition/queue
 
 ##OPTIONAL JOB SPECIFICATIONS
