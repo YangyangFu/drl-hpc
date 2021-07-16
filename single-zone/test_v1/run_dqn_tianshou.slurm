@@ -22,7 +22,7 @@ export UDOCKER_DIR=$SCRATCH/udocker
 export PATH=$UDOCKER_DIR:$PATH
 #ml udocker
 # define a container name
-export CONTAINER_ID=dqn_tianshou_v1
+export CONTAINER_ID=dqn_v1
 # create a container
 echo "creat a DRL container!!!!!!"
 udocker create --name=$CONTAINER_ID yangyangfu/mpcdrl:gpu_py3

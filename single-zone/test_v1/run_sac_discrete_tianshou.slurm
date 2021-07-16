@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##NECESSARY JOB SPECIFICATIONS for a parallel GPU job
-#SBATCH --job-name=test_sac_tianshou       #Set the job name to "JobExample5"
+#SBATCH --job-name=test_sac_v1       #Set the job name to "JobExample5"
 #SBATCH --time=24:00:00              #Set the wall clock limit to 1hr and 30min
 #SBATCH --ntasks=1                   #Request 1 task
 #SBATCH --mem=40G                  #Request 10GB per node
@@ -21,7 +21,7 @@ export UDOCKER_DIR=$SCRATCH/udocker
 export PATH=$UDOCKER_DIR:$PATH
 #ml udocker
 # define a container name
-export CONTAINER_ID=dqn_tianshou_v1
+export CONTAINER_ID=sac_v1
 # create a container
 echo "creat a DRL container!!!!!!"
 udocker create --name=$CONTAINER_ID yangyangfu/mpcdrl:gpu_py3
