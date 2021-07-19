@@ -2,9 +2,9 @@
 
 ##NECESSARY JOB SPECIFICATIONS for a parallel GPU job
 #SBATCH --job-name=test_dqn_v1_fan       #Set the job name to "JobExample5"
-#SBATCH --time=24:00:00              #Set the wall clock limit to 1hr and 30min
+#SBATCH --time=1-6:00:00              #Set the wall clock limit to 1hr and 30min
 #SBATCH --ntasks=1                   #Request 1 task
-#SBATCH --mem=20G                  #Request 10GB per node
+#SBATCH --mem=40G                  #Request 10GB per node
 #SBATCH --output=log_dqn_v1_fan.%j      #Send stdout/err to "Example5Out.[jobID]"
 #SBATCH --gres=gpu:1                 #Request 2 GPU per node can be 1 or 2
 #SBATCH --partition=gpu              #Request the GPU partition/queue
