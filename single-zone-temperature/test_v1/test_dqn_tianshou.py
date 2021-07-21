@@ -89,7 +89,7 @@ def make_building_env(args):
         print("rw_func-cost-min=", rw_func.x, ". penalty-min=", rw_func.y)
         #res = penalty * 10.0
         #res = penalty * 300.0 + cost*1e4
-        res = penalty * 500.0 + cost*5e3
+        res = penalty * 500.0 + cost*5e4
         
         return res
 

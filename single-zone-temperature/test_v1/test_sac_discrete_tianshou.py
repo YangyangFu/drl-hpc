@@ -83,7 +83,7 @@ def make_building_env(args):
     simulation_end_time = simulation_start_time + args.step_per_epoch*args.time_step
     log_level = 7
     alpha = 1
-    nActions = 51
+    nActions = 37
 
     def rw_func(cost, penalty):
         if ( not hasattr(rw_func,'x')  ):
