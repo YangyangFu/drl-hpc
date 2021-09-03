@@ -17,7 +17,7 @@ import gym
 
 def get_args(folder="experiment_results"):
     time_step = 15*60.0
-    num_of_days = 7#31
+    num_of_days = 1#31
     max_number_of_steps = int(num_of_days*24*60*60.0 / time_step)
 
     parser = argparse.ArgumentParser()
@@ -36,7 +36,7 @@ def get_args(folder="experiment_results"):
     parser.add_argument('--n-step', type=int, default=1)
     parser.add_argument('--target-update-freq', type=int, default=100)
 
-    parser.add_argument('--epoch', type=int, default=500)
+    parser.add_argument('--epoch', type=int, default=2)
 
     parser.add_argument('--step-per-epoch', type=int, default=max_number_of_steps)
     parser.add_argument('--step-per-collect', type=int, default=1)
@@ -48,7 +48,9 @@ def get_args(folder="experiment_results"):
 
     parser.add_argument('--logdir', type=str, default='log')
     
-    parser.add_argument('--device', type=str, default='cuda')
+    parser.add_argument(
+        '--device', type=str,
+        default='cuda' if torch.cuda.is_available() else 'cpu')
     parser.add_argument('--frames-stack', type=int, default=1)
     parser.add_argument('--resume-path', type=str, default=None)
     parser.add_argument('--watch', default=False, action='store_true',
@@ -57,6 +59,7 @@ def get_args(folder="experiment_results"):
 
     parser.add_argument('--test-only', type=bool, default=False)
 
+    parser.add_argument('--weight', type=float, default=100)
 
     return parser.parse_args()
 
@@ -89,7 +92,7 @@ def make_building_env(args):
         print("rw_func-cost-min=", rw_func.x, ". penalty-min=", rw_func.y)
         #res = penalty * 10.0
         #res = penalty * 300.0 + cost*1e4
-        res = penalty * 500.0 + cost*5e4
+        res = penalty + cost*args.weight
         
         return res
 
@@ -316,7 +319,7 @@ def test_dqn(args=get_args()):
         else:
             eps = args.eps_train_final
         policy.set_eps(eps)
-        logger.write('train/eps', env_step, eps)
+        #logger.write('train/eps', env_step, eps)
 
     def test_fn(epoch, env_step):
         policy.set_eps(args.eps_test)
@@ -396,6 +399,7 @@ if __name__ == '__main__':
 
     # save training statistics
     statistics = {"training time":end-start, 
-                    "episode": args.epoch}
-    with open('statistics.json', 'w') as fp:
+                    "episode": args.epoch,
+                    "weight":args.weight}
+    with open('statistics'+str(weight)+'.json', 'w') as fp:
         json.dump(statistics,fp)
