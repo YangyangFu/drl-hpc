@@ -3,6 +3,7 @@ import torch
 import pprint
 import argparse
 import numpy as np
+import json
 from torch.utils.tensorboard import SummaryWriter
 
 from tianshou.policy import DQNPolicy
@@ -387,5 +388,14 @@ if __name__ == '__main__':
     folder='./dqn_results'
     if not os.path.exists(folder):
         os.mkdir(folder)
+    args = get_args(folder=folder)
     
-    test_dqn(get_args(folder=folder))
+    start = time.time()
+    test_dqn(args)
+    end = time.time()
+
+    # save training statistics
+    statistics = {"training time":end-start, 
+                    "episode": args.epoch}
+    with open('statistics.json', 'w') as fp:
+        json.dump(statistics,fp)
