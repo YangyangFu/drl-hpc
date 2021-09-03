@@ -17,7 +17,7 @@ import gym
 
 def get_args(folder="experiment_results"):
     time_step = 15*60.0
-    num_of_days = 1#31
+    num_of_days = 7#31
     max_number_of_steps = int(num_of_days*24*60*60.0 / time_step)
 
     parser = argparse.ArgumentParser()
@@ -36,7 +36,7 @@ def get_args(folder="experiment_results"):
     parser.add_argument('--n-step', type=int, default=1)
     parser.add_argument('--target-update-freq', type=int, default=100)
 
-    parser.add_argument('--epoch', type=int, default=2)
+    parser.add_argument('--epoch', type=int, default=500)
 
     parser.add_argument('--step-per-epoch', type=int, default=max_number_of_steps)
     parser.add_argument('--step-per-collect', type=int, default=1)
