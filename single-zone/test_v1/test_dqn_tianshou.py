@@ -388,7 +388,7 @@ if __name__ == '__main__':
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
-    folder='./dqn_results'
+    folder='./dqn_results_100'
     if not os.path.exists(folder):
         os.mkdir(folder)
     args = get_args(folder=folder)
@@ -401,5 +401,5 @@ if __name__ == '__main__':
     statistics = {"training time":end-start, 
                     "episode": args.epoch,
                     "weight":args.weight}
-    with open('statistics'+str(weight)+'.json', 'w') as fp:
+    with open('statistics'+str(args.weight)+'.json', 'w') as fp:
         json.dump(statistics,fp)
