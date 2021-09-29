@@ -59,7 +59,7 @@ def get_args(folder="experiment_results"):
 
     parser.add_argument('--test-only', type=bool, default=False)
 
-    parser.add_argument('--weight', type=float, default=100)
+    parser.add_argument('--weight', type=float, default=0.001)
 
     return parser.parse_args()
 
@@ -388,7 +388,7 @@ if __name__ == '__main__':
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
-    folder='./dqn_results_100'
+    folder='./dqn_results_0001'
     if not os.path.exists(folder):
         os.mkdir(folder)
     args = get_args(folder=folder)
