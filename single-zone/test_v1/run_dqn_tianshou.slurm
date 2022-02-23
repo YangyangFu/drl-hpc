@@ -25,13 +25,13 @@ export PATH=$UDOCKER_DIR:$PATH
 export CONTAINER_ID=dqn_v1_fan
 # create a container
 echo "creat a DRL container!!!!!!"
-udocker create --name=$CONTAINER_ID yangyangfu/mpcdrl:gpu_py3
+udocker create --name=$CONTAINER_ID yangyangfu/mpcdrl:debug
 # prepare udocker to access gpu
 echo "setup for GPU application!!!!!!"
 udocker setup --force --nvidia $CONTAINER_ID
 # run experiment
 echo "run DRL experiment in Docker"
-udocker run --user=root -e DISPLAY=${DISPLAY} -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v `pwd`:/mnt/shared $CONTAINER_ID /bin/bash -c "cd /mnt/shared && python /mnt/shared/test_dqn_tianshou.py"
+udocker run --user=root -e DISPLAY=${DISPLAY} -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v `pwd`:/mnt/shared $CONTAINER_ID /bin/bash -c "source activate base && export PYTHONPATH=$PYFMI_PY3_CONDA_PATH:$PYTHONPATH && cd /mnt/shared && python /mnt/shared/test_ddqn_tianshou.py"
 # remove container after experiment
 udocker rm $CONTAINER_ID
 #bash test_dqn_tianshou_udocker.sh
