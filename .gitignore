@@ -81,3 +81,6 @@ build
 
 # ignore log
 *log*
+
+# ignore hpc files
+*core*
